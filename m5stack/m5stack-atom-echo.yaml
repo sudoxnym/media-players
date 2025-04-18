@@ -75,32 +75,39 @@ voice_assistant:
 
 binary_sensor:
   - platform: gpio
+    id: echo_button
     pin:
       number: GPIO39
       inverted: true
-    name: Button
-    id: echo_button
+    disabled_by_default: true
+    entity_category: diagnostic
+
     on_multi_click:
+      replace: true    # 🔥 discard the package’s original click handlers
       - timing:
           - ON FOR AT MOST 350ms
           - OFF FOR AT LEAST 10ms
         then:
-          - media_player.toggle: 
+          - media_player.toggle:
               id: media_out
+
       - timing:
           - ON FOR AT LEAST 350ms
         then:
           - if:
               condition:
                 media_player.is_playing: media_out
-              then:
-                - media_player.stop: media_out
-          - voice_assistant.start:
+            then:
+              - media_player.stop:
+                  id: media_out
+            else:
+              - voice_assistant.start: {}
+
       - timing:
           - ON FOR AT LEAST 350ms
           - OFF FOR AT LEAST 10ms
         then:
-          - voice_assistant.stop:
+          - voice_assistant.stop: {}
 
 media_player:
   - platform: i2s_audio
